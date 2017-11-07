@@ -1,0 +1,41 @@
+{
+  "[makefile]": {
+    "editor.insertSpaces": false,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "files.insertFinalNewline": false
+  },
+  "clang.cxxflags": ["-std=c++14"],
+  "cppcheck.lintingEnabled": true,
+  "files.associations": {
+    "*.js": "javascript",
+    "*.jsx": "javascriptreact",
+    "iostream": "cpp",
+    "ostream": "cpp",
+    "exception": "cpp",
+    "*.tcc": "cpp",
+    "cctype": "cpp",
+    "clocale": "cpp",
+    "cstdint": "cpp",
+    "cstdio": "cpp",
+    "cstdlib": "cpp",
+    "cwchar": "cpp",
+    "cwctype": "cpp",
+    "initializer_list": "cpp",
+    "iosfwd": "cpp",
+    "istream": "cpp",
+    "limits": "cpp",
+    "stdexcept": "cpp",
+    "streambuf": "cpp",
+    "system_error": "cpp",
+    "type_traits": "cpp",
+    "typeinfo": "cpp",
+    "array": "cpp",
+    "functional": "cpp",
+    "memory": "cpp",
+    "new": "cpp",
+    "tuple": "cpp",
+    "utility": "cpp",
+    "fstream": "cpp"
+  }
+}

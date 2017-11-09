@@ -1,6 +1,6 @@
 BUILD_PATH = build
 BUILD_DEBUG_FILE = debug
-FILES_TO_COMPILE = main.cpp src/scene.cpp
+FILES_TO_COMPILE = main.cpp src/scene.cpp src/shape.cpp
 ARGS = -g
 
 compile: clean

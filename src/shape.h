@@ -5,11 +5,19 @@
 #include <math.h>
 #include <memory>
 
-typedef bool (*gen_func)(int x, int y, int z);
+struct PointInfo {
+  PointInfo(bool has, char sign) : has(has), sign(sign){};
+
+  bool has;
+  char sign;
+};
 
 class Shape {
 public:
   Shape(char sign, Point center) : sign(sign), center(center){};
+  Shape(char sign, Point center, Shape &parent) : sign(sign), center(center) {
+    relative_to(parent);
+  };
   Shape(Shape &&) = default;
   Shape(const Shape &) = default;
   Shape &operator=(Shape &&) = default;
@@ -21,17 +29,47 @@ public:
     return false;
   }
 
+  virtual PointInfo get_at(const int x, const int y, const int z) final;
+  virtual PointInfo get_at(const Point &point) final {
+    return get_at(point.x(), point.y(), point.z());
+  }
+
+  virtual void relative_to(Shape &parent) {
+    this->parent = std::make_shared<Shape>(parent);
+    set_center(get_center() +
+               parent.get_center()); // Convert relative coords to global
+    aligned = true;
+  }
+
+  virtual void push_child(std::shared_ptr<Shape> child) {
+    if (child->aligned) {
+      children.emplace_back(child);
+    } else {
+      std::cerr << "Align child relative to other first\n";
+    }
+  }
+
+  Point get_center() const { return center; }
+  void set_center(const Point &point) { center = point; }
+
 protected:
   char sign;
   Point center;
+  std::shared_ptr<Shape> parent = nullptr;
+  std::vector<std::shared_ptr<Shape>> children;
+  bool aligned = false;
 };
 
 class Sphere : public Shape {
 public:
   Sphere(char sign, Point center, float radius)
       : Shape(sign, center), radius(radius){};
+  Sphere(char sign, Point center, float radius, Shape &parent)
+      : Shape(sign, center, parent), radius(radius){};
 
   ~Sphere(){};
+
+  float get_radius() const { return radius; }
 
 protected:
   float radius;

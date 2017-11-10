@@ -1,3 +1,4 @@
+#include "handlers.h"
 #include "src/molecule.h"
 #include "src/scene.h"
 #include "src/shape.h"
@@ -5,14 +6,8 @@
 #include <iostream>
 #include <memory>
 
-void signal_handler(int signum) {
-  std::cout << "\e[?25h\n";
-
-  exit(signum);
-}
-
 int main() {
-  signal(SIGINT, signal_handler);
+  signal(SIGINT, exit_handler);
 
   auto scene = std::make_unique<Scene>(70, 70, 70, ' ');
   // auto sphere = std::make_shared<Sphere>('1', Point(20, 20, 10), 10);
@@ -29,5 +24,6 @@ int main() {
 
   scene->render("first_scene", false);
 
+  exit_handler(0);
   return 0;
 }

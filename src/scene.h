@@ -20,7 +20,7 @@ public:
   Scene &operator=(const Scene &) = default;
   ~Scene(){};
 
-  void render(std::string filename);
+  void render(std::string filename, bool write_to_stdout = true);
   void push_child(std::shared_ptr<Shape> child) {
     children.emplace_back(child);
   }

@@ -45,7 +45,7 @@ public:
     if (child->aligned) {
       children.emplace_back(child);
     } else {
-      std::cerr << "Align child relative to other first\n";
+      std::cout << "FATAL: Align child relative to other first\n";
     }
   }
 

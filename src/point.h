@@ -1,5 +1,7 @@
 #pragma once
 
+#include <iostream>
+
 class Point {
 public:
   Point() : xp(0), yp(0), zp(0){};
@@ -56,6 +58,11 @@ public:
     zp -= point.z();
 
     return *this;
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const Point &p) {
+    os << "{ " << p.x() << ", " << p.y() << ", " << p.z() << " }";
+    return os;
   }
 
   Point &increase_all(int x, int y, int z) {

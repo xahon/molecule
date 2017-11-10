@@ -36,6 +36,7 @@
     "new": "cpp",
     "tuple": "cpp",
     "utility": "cpp",
-    "fstream": "cpp"
+    "fstream": "cpp",
+    "csignal": "cpp"
   }
 }

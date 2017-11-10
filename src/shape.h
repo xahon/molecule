@@ -36,8 +36,8 @@ public:
 
   virtual void relative_to(Shape &parent) {
     this->parent = std::make_shared<Shape>(parent);
-    set_center(get_center() +
-               parent.get_center()); // Convert relative coords to global
+    // set_center(get_center() +
+    //            parent.get_center()); // Convert relative coords to global
     aligned = true;
   }
 

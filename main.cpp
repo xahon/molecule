@@ -9,7 +9,7 @@
 int main() {
   signal(SIGINT, exit_handler);
 
-  auto scene = std::make_unique<Scene>(70, 70, 70, ' ');
+  auto scene = std::make_unique<Scene>(40, 40, 40, ' ');
   // auto sphere = std::make_shared<Sphere>('1', Point(20, 20, 10), 10);
 
   // sphere->push_child(std::make_shared<Sphere>(
@@ -19,7 +19,7 @@ int main() {
 
   // scene->push_child(sphere);
 
-  auto molecule = create_molecule(Point(35, 35, 35), 10, 4);
+  auto molecule = create_molecule(Point(20, 20, 20), 8, 2);
   scene->push_child(molecule);
 
   scene->render("first_scene", false);

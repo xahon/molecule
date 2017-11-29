@@ -65,6 +65,17 @@ public:
     return os;
   }
 
+  // friend std::string to_string(Point const &self) {
+  //   return "{ " + std::to_string(self.x()) + ", " + std::to_string(self.y())
+  //   +
+  //          ", " + std::to_string(self.z()) + " }";
+  // }
+
+  std::string to_string() {
+    return "{ " + std::to_string(x()) + ", " + std::to_string(y()) + ", " +
+           std::to_string(z()) + " }";
+  }
+
   Point &increase_all(int x, int y, int z) {
     xp += x;
     yp += y;

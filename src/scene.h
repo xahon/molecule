@@ -1,6 +1,7 @@
 #pragma once
 
 #include "arrays.h"
+#include "logger.h"
 #include "shape.h"
 #include <fstream>
 #include <iostream>
@@ -24,6 +25,11 @@ public:
   void push_child(std::shared_ptr<Shape> child) {
     children.emplace_back(child);
   }
+
+  void generate_chunk(const int from_x, const int from_y, const int from_z,
+                      const int to_x, const int to_y, const int to_z,
+                      std::shared_ptr<std::string> buffer,
+                      std::shared_ptr<Log> logger);
 
 private:
   const int width;

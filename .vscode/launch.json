@@ -7,7 +7,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceRoot}/build/debug",
-      "args": [],
+      "args": ["--radius", "12", "-c 200"],
       "stopAtEntry": false,
       "cwd": "${workspaceRoot}",
       "environment": [],

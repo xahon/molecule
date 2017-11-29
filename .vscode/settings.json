@@ -37,6 +37,15 @@
     "tuple": "cpp",
     "utility": "cpp",
     "fstream": "cpp",
-    "csignal": "cpp"
+    "csignal": "cpp",
+    "chrono": "cpp",
+    "bitset": "cpp",
+    "cmath": "cpp",
+    "cstring": "cpp",
+    "ctime": "cpp",
+    "mutex": "cpp",
+    "ratio": "cpp",
+    "sstream": "cpp",
+    "thread": "cpp"
   }
 }

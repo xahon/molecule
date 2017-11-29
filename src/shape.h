@@ -49,6 +49,12 @@ public:
     }
   }
 
+  // friend std::string to_string(Point const &self) {
+  //   return "{ " + std::to_string(self.x()) + ", " + std::to_string(self.y())
+  //   +
+  //          ", " + std::to_string(self.z()) + " }";
+  // }
+
   Point get_center() const { return center; }
   void set_center(const Point &point) { center = point; }
 

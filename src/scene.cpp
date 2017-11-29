@@ -1,81 +1,139 @@
 #include "scene.h"
+#include "../globals.h"
+#include <chrono>
+#include <ctime>
+#include <math.h>
+#include <sys/time.h>
+#include <thread>
 
-namespace {
-class Log {
-public:
-  static void init_file(std::string filename) {
-    file.open(filename + ".vox", std::ios::trunc);
-  }
-  static void write(char sign_to_print, bool write_to_stdout = true) {
-    if (write_to_stdout) {
-      std::cout << sign_to_print;
+// #define Globals.CHUNK_PER_THREAD 10
+
+std::mutex mtx;
+
+void Scene::generate_chunk(const int from_x, const int from_y, const int from_z,
+                           const int to_x, const int to_y, const int to_z,
+                           std::shared_ptr<std::string> buf,
+                           std::shared_ptr<Log> logger) {
+  // std::cout << "Iterating thru " << from_z << " to " << to_z << " - " <<
+  // depth << '\n';
+  for (int z = from_z; z < to_z; z++) {
+    for (int y = from_y; y < to_y; y++) {
+      for (int x = from_x; x < to_x; x++) {
+        PointInfo current_point_info(true, default_filler);
+        // buffer->set(cur_point, true); // set default scene char
+
+        for (unsigned i = children.size(); i-- > 0;) {
+          auto child_point = children[i]->get_at(x, y, z);
+
+          if (child_point.has) {
+            // std::cout << "Has another " << child_point.sign << '\n';
+            current_point_info = child_point;
+            break;
+          }
+        }
+
+        mtx.lock();
+        (*logger).step();
+        mtx.unlock();
+
+        (*buf)[x + y * height + z * height * width] = current_point_info.sign;
+        // render_printer->writeFile(std::string(1, current_point_info.sign));
+      }
+      // (*buf)[y * height + z * height * width] = '\n';
+      // render_printer->writeFile("\n");
     }
-
-    file << sign_to_print;
+    // (*buf)[z * height * width] = '\n';
+    // render_printer->writeFile("\n");
   }
+}
 
-  static void step(int size = 1) {
-    current_step += size;
+void generate_layer_thread(Scene *scene, const int from_x, const int from_y,
+                           const int from_z, const int to_x, const int to_y,
+                           const int to_z, std::shared_ptr<std::string> buf,
+                           std::shared_ptr<Log> logger) {
+  scene->generate_chunk(from_x, from_y, from_z, to_x, to_y, to_z, buf, logger);
+}
 
-    int next_percentage = (int)((float)current_step / count * 100);
-    int current_percentage = (int)((float)old_step / count * 100);
-
-    if (current_percentage != next_percentage) {
-      std::cout << "\rProgress: " << next_percentage << "%        "
-                << std::flush;
-      old_step = current_step;
-    }
-  }
-
-  static void register_count(int count) {
-    if (count < 0) {
-      throw "Count must be greater than 0";
-    }
-
-    Log::count = count;
-  }
-
-private:
-  static std::ofstream file;
-  static int count;
-  static int current_step;
-  static int old_step;
-};
-
-std::ofstream Log::file;
-int Log::count = 0;
-int Log::current_step = 0;
-int Log::old_step = 0;
-} // namespace
+static inline auto now() { return std::chrono::high_resolution_clock::now(); }
 
 void Scene::render(std::string filename, bool write_to_stdout) {
-  Log::init_file(filename);
+  auto time1 = now();
 
-  std::cout << "\e[?25l\n";
-  if (!write_to_stdout) {
-    Log::register_count(depth * height * width);
-    Log::step(0);
+  Log stdoutLogger;
+  Log renderOutput(filename);
+
+  stdoutLogger.write("\e[?25l\n");
+  stdoutLogger.register_count(depth * height * width);
+  stdoutLogger.step(0);
+
+  auto raw_render =
+      std::make_shared<std::string>(depth * height * width, default_filler);
+  std::vector<std::thread> threads;
+
+  auto logger_shared_ptr = std::make_shared<Log>(stdoutLogger);
+
+  const int max_thread_count = ceil((float)depth / Globals.CHUNK_PER_THREAD);
+
+  for (int thr = 0; thr < max_thread_count; thr++) {
+    // from x=0 y=0 z=depth/THC*thr to x = width y = height z=depth
+    /*
+      const int from_x, const int from_y, const int from_z,
+      const int to_x, const int to_y, const int to_z
+    */
+    // TODO: Check it
+    const int fromz = Globals.CHUNK_PER_THREAD * thr;
+    int toz_tmp = Globals.CHUNK_PER_THREAD * (thr + 1);
+    const int toz = toz_tmp >= depth ? depth : toz_tmp;
+
+    std::cout << "Thread pushed from " << fromz << " to " << toz << "\n";
+
+    threads.push_back(std::thread(generate_layer_thread, this, 0, 0, fromz,
+                                  width, height, toz, raw_render,
+                                  logger_shared_ptr));
   }
 
+  stdoutLogger.write(std::to_string(threads.size()) +
+                     " threads will be spawned\n\n");
+
+  for (auto &&t : threads)
+    t.join();
+
+  // generate_layer_thread(this, 0, 0, 0, width, height, depth, nullptr,
+  //                       logger_shared_ptr, render_printer_shared_ptr);
+
+  // stdoutLogger.write(raw_render);
+  // renderOutput.writeFile(raw_render);
+  stdoutLogger.register_count(depth * height * width);
+  stdoutLogger.step(0);
+  stdoutLogger.write("\n\nPrinting...\n\n");
   for (int z = 0; z < depth; z++) {
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        Point cur_point(x, y, z);
-        PointInfo cur(true, default_filler);
-        buffer->set(cur_point, true); // set default scene char
-
-        for (auto child = children.begin(); child != children.end(); child++) {
-          auto child_point = (*child)->get_at(cur_point);
-          cur = child_point.has ? child_point : cur;
-        }
-
-        if (!write_to_stdout) {
-          Log::step();
-        }
-        Log::write(cur.sign, write_to_stdout);
+        auto cc = raw_render->at(x + y * height + z * height * width);
+        renderOutput.writeFile(cc);
+        stdoutLogger.step();
       }
-      Log::write('\n', write_to_stdout);
+      renderOutput.writeFile('\n');
     }
-    Log::write('\n', write_to_stdout);
+    renderOutput.writeFile('\n');
   }
+
+  auto time2 = now();
+
+  std::string postfix = "ms";
+
+  int diff =
+      std::chrono::duration_cast<std::chrono::milliseconds>(time2 - time1)
+          .count();
+
+  if (diff > 1000) {
+    postfix = "s";
+    diff =
+        std::chrono::duration_cast<std::chrono::seconds>(time2 - time1).count();
+  }
+
+  stdoutLogger.write("\nTime elapsed: ");
+  stdoutLogger.write(std::to_string(diff));
+  stdoutLogger.write(postfix);
+  stdoutLogger.write("\n");
 }

@@ -10,12 +10,14 @@ void Log::clear_file() {
     return;
   }
 
-  std::ofstream(filename + ".vox", std::ios::trunc);
-  std::ofstream(filename + ".debug", std::ios::trunc);
-  // for (const auto &i : Log::level) {
-  //   std::ofstream file(filename + i.second, std::ios::trunc);
-  //   file.close();
-  // }
+  // std::ofstream(filename + ".vox", std::ios::trunc);
+  // std::ofstream(filename + ".debug", std::ios::trunc);
+
+  for (int lev = LoggerLevelBegin; lev != LoggerLevelEnd; lev++) {
+    const auto ext = level.find(LoggerLevel(lev))->second;
+    std::ofstream file(filename + ext, std::ios::trunc);
+    file.close();
+  }
 }
 
 void Log::write(std::string printable) { std::cout << printable; }

@@ -71,7 +71,7 @@ public:
   //          ", " + std::to_string(self.z()) + " }";
   // }
 
-  std::string to_string() {
+  std::string to_string() const {
     return "{ " + std::to_string(x()) + ", " + std::to_string(y()) + ", " +
            std::to_string(z()) + " }";
   }

@@ -1,5 +1,6 @@
 #include "globals.h"
 #include "handlers.h"
+#include "src/logger.h"
 #include "src/molecule.h"
 #include "src/scene.h"
 #include "src/shape.h"
@@ -16,23 +17,33 @@ struct molecule_info {
   int depth;
 };
 
+const char *DEFAULT_SCENE_NAME = "default_scene";
+const char *DEFAULT_RADIUS = "18";
+const char *DEFAULT_RECURSION_DEPTH = "4";
+const char *DEFAULT_CHUNK_SIZE_PER_THREAD = "10";
+
 int main(int argc, char **argv) {
   cxxopts::Options opts("Molecule");
 
-  opts.add_options()
+  opts.add_options()("n,name", "Filename for render",
+                     cxxopts::value<std::string>()
+                         ->default_value(DEFAULT_SCENE_NAME)
+                         ->implicit_value(DEFAULT_SCENE_NAME))
 
-      ("n,name", "Filename for render",
-       cxxopts::value<std::string>()->default_value("default_scene"))
+      ("r,radius", "Set molecule root node radius",
+       cxxopts::value<int>()
+           ->default_value(DEFAULT_RADIUS)
+           ->implicit_value(DEFAULT_RADIUS))
 
-          ("r,radius", "Set molecule root node radius",
-           cxxopts::value<int>()->default_value("8"))
+          ("d,depth", "Set molecule recursion depth",
+           cxxopts::value<int>()
+               ->default_value(DEFAULT_RECURSION_DEPTH)
+               ->implicit_value(DEFAULT_RECURSION_DEPTH))
 
-              ("d,depth", "Set molecule recursion depth",
-               cxxopts::value<int>()->default_value("3"))
-
-                  ("c,chunk-per-thread",
-                   "Set chunk size per one thread to render",
-                   cxxopts::value<unsigned>()->default_value("10"));
+              ("c,chunk-per-thread", "Set chunk size per one thread to render",
+               cxxopts::value<unsigned>()
+                   ->default_value(DEFAULT_CHUNK_SIZE_PER_THREAD)
+                   ->implicit_value(DEFAULT_CHUNK_SIZE_PER_THREAD));
 
   auto result = opts.parse(argc, argv);
 
@@ -62,7 +73,7 @@ int main(int argc, char **argv) {
       offset += radius < 1 ? 1 : radius;
     }
 
-    offset += 1; // Add space near boundaries
+    offset += 1; // Add padding
     offset *= 2;
 
     return Point(offset, offset, offset);
@@ -83,7 +94,10 @@ int main(int argc, char **argv) {
 
   // scene->push_child(sphere);
 
-  auto molecule = create_molecule(mi.center, mi.radius, mi.depth);
+  Log logger(r_name);
+  logger.clear_file();
+
+  auto molecule = create_molecule(r_name, mi.center, mi.radius, mi.depth);
   scene->push_child(molecule);
   scene->render(r_name, false);
 

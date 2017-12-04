@@ -59,18 +59,17 @@ static inline auto now() { return std::chrono::high_resolution_clock::now(); }
 void Scene::render(std::string filename, bool write_to_stdout) {
   auto time1 = now();
 
-  Log stdoutLogger;
-  Log renderOutput(filename);
+  Log logger(filename);
 
-  stdoutLogger.write("\e[?25l\n");
-  stdoutLogger.register_count(depth * height * width);
-  stdoutLogger.step(0);
+  logger.write("\e[?25l\n");
+  logger.register_count(depth * height * width);
+  logger.step(0);
 
   auto raw_render =
       std::make_shared<std::string>(depth * height * width, default_filler);
   std::vector<std::thread> threads;
 
-  auto logger_shared_ptr = std::make_shared<Log>(stdoutLogger);
+  auto logger_shared_ptr = std::make_shared<Log>(logger);
 
   const int max_thread_count = ceil((float)depth / Globals.CHUNK_PER_THREAD);
 
@@ -92,30 +91,24 @@ void Scene::render(std::string filename, bool write_to_stdout) {
                                   logger_shared_ptr));
   }
 
-  stdoutLogger.write(std::to_string(threads.size()) +
-                     " threads will be spawned\n\n");
+  logger.write(std::to_string(threads.size()) + " threads will be spawned\n\n");
 
   for (auto &&t : threads)
     t.join();
 
-  // generate_layer_thread(this, 0, 0, 0, width, height, depth, nullptr,
-  //                       logger_shared_ptr, render_printer_shared_ptr);
-
-  // stdoutLogger.write(raw_render);
-  // renderOutput.writeFile(raw_render);
-  stdoutLogger.register_count(depth * height * width);
-  stdoutLogger.step(0);
-  stdoutLogger.write("\n\nPrinting...\n\n");
+  logger.register_count(depth * height * width);
+  logger.step(0);
+  logger.write("\n\nPrinting...\n\n");
   for (int z = 0; z < depth; z++) {
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
         auto cc = raw_render->at(x + y * height + z * height * width);
-        renderOutput.writeFile(cc);
-        stdoutLogger.step();
+        logger.writeFile(cc);
+        logger.step();
       }
-      renderOutput.writeFile('\n');
+      logger.writeFile('\n');
     }
-    renderOutput.writeFile('\n');
+    logger.writeFile('\n');
   }
 
   auto time2 = now();
@@ -132,8 +125,8 @@ void Scene::render(std::string filename, bool write_to_stdout) {
         std::chrono::duration_cast<std::chrono::seconds>(time2 - time1).count();
   }
 
-  stdoutLogger.write("\nTime elapsed: ");
-  stdoutLogger.write(std::to_string(diff));
-  stdoutLogger.write(postfix);
-  stdoutLogger.write("\n");
+  logger.write("\nTime elapsed: ");
+  logger.write(std::to_string(diff));
+  logger.write(postfix);
+  logger.write("\n");
 }
